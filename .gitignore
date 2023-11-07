@@ -1,0 +1,15 @@
+build/
+built/
+config.json
+
+.DS_STORE
+
+*.tmp
+.*.tmp
+
+.swp
+*.swp
+.*.swp
+
+.vscode/
+.idea/

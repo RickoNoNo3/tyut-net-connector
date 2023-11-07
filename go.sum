@@ -1,0 +1,16 @@
+github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
+github.com/gonutz/w32/v2 v2.10.0 h1:op96ZhdrGFKsAE1tXsE3HOIheADH6DPHlQusgsZxSCk=
+github.com/gonutz/w32/v2 v2.10.0/go.mod h1:MgtHx0AScDVNKyB+kjyPder4xIi3XAcHS6LDDU2DmdE=
+github.com/pixelbender/go-traceroute v0.0.0-20190414152342-e631ab553a80 h1:I4NMHzc2iGHcxwpt/N3aktqyrDGNx0LrJEYU7g60J0I=
+github.com/pixelbender/go-traceroute v0.0.0-20190414152342-e631ab553a80/go.mod h1:wtXyvVnMsTkas6cTVJwoTu0voqSm+pYg2YAU/mUfQJQ=
+github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
+github.com/rickonono3/m2obj v1.0.1 h1:4TFdspNmD8rb4/lvo+BVury3/KRYBSkkHojmaLR9b+0=
+github.com/rickonono3/m2obj v1.0.1/go.mod h1:5DVcx7bwcPff5L9hhXX10Plc7oVkzKvcbclGFVeeTrA=
+github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
+github.com/stretchr/testify v1.7.0/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
+golang.org/x/net v0.0.0-20190125091013-d26f9f9a57f3 h1:ulvT7fqt0yHWzpJwI57MezWnYDVpCAYBVuYst/L+fAY=
+golang.org/x/net v0.0.0-20190125091013-d26f9f9a57f3/go.mod h1:mL1N/T3taQHkDXs73rZJwtUhF3w3ftmwwsq0BUmARs4=
+golang.org/x/net v0.17.0 h1:pVaXccu2ozPjCXewfr1S7xza/zcXTity9cCdXQYSjIM=
+golang.org/x/net v0.17.0/go.mod h1:NxSsAGuq816PNPmqtQdLE42eU2Fs7NoRIZrHJAlaCOE=
+gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
+gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c/go.mod h1:K4uyk7z7BCEPqu6E+C64Yfv1cQ7kz7rIZviUmN+EgEM=
