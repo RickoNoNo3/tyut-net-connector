@@ -1,5 +1,5 @@
 param (
-  $version
+  [string]$version
 )
 
 if ([string]::IsNullOrEmpty($version)) {
@@ -19,11 +19,11 @@ function Build {
   SET GOOS=$GOOS
   if ($GOOS -eq 'windows') {
     go build -o ./build/$Name/tyut-net-connector.exe .
-    cp ./startup.cmd ./build/$Name/
+    cp ./startup.cmd ./build/$Name/tyut-net-connector-startup.cmd
   } else {
     go build -o ./build/$Name/tyut-net-connector .
-    cp ./startup.sh ./build/$Name/
-    wsl -e chmod +x ./build/$Name/startup.sh
+    cp ./startup.sh ./build/$Name/tyut-net-connector-startup.sh
+    wsl -e chmod +x ./build/$Name/tyut-net-connector-startup.sh
   }
   cp ./README.md ./build/$Name/
   cd ./build

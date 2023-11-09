@@ -6,8 +6,6 @@ SET silent=0
 
 if %silent% EQU 1 (
   start tyut-net-connector.exe -u %username% -p %password% -silent
-  echo 已在后台启动程序，现在请按任意键关闭本窗口
-  pause >nul
   goto END
 )
 tyut-net-connector.exe -u %username% -p %password%
