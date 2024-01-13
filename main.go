@@ -70,13 +70,27 @@ func main() {
 	}
 	var n network.INetworker
 	n = &network.Networker{}
-	if n.Check() {
+	if n.CheckCampus() && n.CheckInternet() {
 		fmt.Println("Already logged in")
 	}
 	for {
-		if !n.Check() {
-			n.Connect()
+		// 如果能同时连接到校园网和公网，按120s间隔重新检测
+		// 如果能连接到校园网，但连接不到公网，登录一次，若成功，按3600s间隔重新检测，若失败，按120s间隔重新检测并登录
+		// 如果不能连接到校园网，按5s间隔重新检测
+		var sleepTime int64
+		if n.CheckCampus() {
+			if n.CheckInternet() {
+				sleepTime = 120
+			} else {
+				if err := n.Connect(); err == nil {
+					sleepTime = 3600
+				} else {
+					sleepTime = 120
+				}
+			}
+		} else {
+			sleepTime = 5
 		}
-		time.Sleep(10 * time.Second)
+		time.Sleep(time.Duration(sleepTime * int64(time.Second)))
 	}
 }

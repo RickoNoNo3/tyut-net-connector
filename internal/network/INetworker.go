@@ -4,6 +4,7 @@ import "net"
 
 type INetworker interface {
 	getCampusNetwork() (net.IP, net.HardwareAddr, error)
-	Check() bool
-	Connect()
+	CheckCampus() bool
+	CheckInternet() bool
+	Connect() error
 }

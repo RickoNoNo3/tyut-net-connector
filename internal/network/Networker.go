@@ -3,6 +3,7 @@ package network
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net"
@@ -59,12 +60,15 @@ func (n *Networker) check(url string) bool {
 	return resp.StatusCode >= 200 && resp.StatusCode < 300
 }
 
-func (n *Networker) Check() bool {
-	return n.check(config.C.MustGet("health_campus").ValStr()) &&
-		n.check(config.C.MustGet("health_internet").ValStr())
+func (n *Networker) CheckCampus() bool {
+	return n.check(config.C.MustGet("health_campus").ValStr())
 }
 
-func (n *Networker) Connect() {
+func (n *Networker) CheckInternet() bool {
+	return n.check(config.C.MustGet("health_internet").ValStr())
+}
+
+func (n *Networker) Connect() error {
 	// 处理loginUrl template
 	var (
 		loginTemplateStr, loginUrl string
@@ -75,10 +79,10 @@ func (n *Networker) Connect() {
 	)
 	loginTemplateStr = config.C.MustGet("login").ValStr()
 	if loginTemplate, err = template.New("login").Parse(loginTemplateStr); err != nil {
-		return
+		return err
 	}
 	if ip, mac, err = n.getCampusNetwork(); err != nil {
-		return
+		return err
 	}
 	buf := &bytes.Buffer{}
 	loginTemplate.Execute(buf, m2obj.New(m2obj.Group{
@@ -90,12 +94,12 @@ func (n *Networker) Connect() {
 	loginUrl = buf.String()
 	// 发送login请求
 	if req, err := http.NewRequest("GET", loginUrl, nil); err != nil {
-		return
+		return err
 	} else if resp, err := http.DefaultClient.Do(req); err != nil {
-		return
+		return err
 	} else {
 		// 处理响应并Print结果
-		if resp.StatusCode == 200 {
+		if resp.StatusCode >= 200 && resp.StatusCode < 300 {
 			if body, err := io.ReadAll(resp.Body); err == nil {
 				resMatch := loginResponseRegexp.FindSubmatch(body)
 				if resMatch != nil && len(resMatch) > 1 && len(resMatch[1]) >= 2 {
@@ -104,14 +108,22 @@ func (n *Networker) Connect() {
 					if err = json.Unmarshal(resJson, &res); err == nil {
 						if res["result"] == 1 {
 							fmt.Println("Logged in")
+							return nil
 						} else {
 							fmt.Println("Cannot login:", string(resJson))
+							return errors.New(string(resJson))
 						}
-						return
+					} else {
+						return err
 					}
+				} else {
+					return errors.New("Invalid Response From Server")
 				}
+			} else {
+				return err
 			}
+		} else {
+			return errors.New("Server Status Err" + resp.Status)
 		}
-		fmt.Println("Cannot login")
 	}
 }
