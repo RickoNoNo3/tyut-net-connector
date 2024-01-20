@@ -3,9 +3,9 @@
 
 ## 食用方法
 ### 获取
-在[Release页](https://github.com/RickoNoNo3/tyut-net-connector/releases)下载最新发行版本。
+Windows: 在[Release页](https://github.com/RickoNoNo3/tyut-net-connector/releases)下载最新发行版本。
 
-*对于须手工编译的系统：Go 1.17 下执行`go install github.com/rickonono3/tyut-net-connector`，此时可执行程序将自动加入PATH*
+Linux/Mac: 在 Go 1.17 下从源代码编译，执行根目录下的 `build-unix.sh`，将在 `build` 文件夹中生成编译完成的可执行程序及配套启动脚本。
 
 ### 连接
 本程序为命令行程序，**已经为不同系统配备了启动脚本，可以编辑脚本文件，配置好个人连接账号和密码后，直接运行脚本**。
@@ -22,15 +22,13 @@ Windows下，需要静默启动（不显示命令行窗口）可以添加参数`
 ./tyut-net-connector.exe -u <username> -p <password> -silent
 ```
 
-注意不要重复启动。Linux下的静默启动请自行配置（如使用nohup）
-
 ### 部署自启动
 本程序设计为守护程序，轮询检查并自动维护网络状态，因此不要求系统开机自动联网，也可以在系统从睡眠、休眠等状态还原后自动恢复连接。
 
 根据具体操作系统的不同，自启动的部署方式有所区别，这里给出一些建议：
 - Linux系统：Debian/Ubuntu建议以systemctl服务形式部署，放置在network服务之后；其他linux系统类似
-- Windows系统：建议将本程序的`startup.cmd`脚本的**快捷方式**放置于`开始菜单-启动`目录下，注意提前编辑好脚本文件中的账号密码，并将silent置为1
-- MacOS系统：建议在`设置-用户与群组-登录项`中配置启动脚本`startup.sh`为登录项
+- Windows系统：建议将本程序的`tyut-net-connector-startup.cmd`脚本的**快捷方式**放置于`开始菜单-启动`目录下，注意提前编辑好脚本文件中的账号密码，并将silent置为1
+- MacOS系统：建议在`设置-用户与群组-登录项`中配置启动脚本`tyut-net-connector-startup.sh`为登录项
 
 ### 详细参数
 本程序为命令行程序，支持以`-key value`格式传递参数，其中`u`和`p`是必传参数：
