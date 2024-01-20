@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"net"
 	"net/http"
@@ -61,11 +60,11 @@ func (n *Networker) check(url string) bool {
 }
 
 func (n *Networker) CheckCampus() bool {
-	return n.check(config.C.MustGet("health_campus").ValStr())
+	return n.check(config.C["health_campus"])
 }
 
 func (n *Networker) CheckInternet() bool {
-	return n.check(config.C.MustGet("health_internet").ValStr())
+	return n.check(config.C["health_internet"])
 }
 
 func (n *Networker) Connect() error {
@@ -77,7 +76,7 @@ func (n *Networker) Connect() error {
 		mac                        net.HardwareAddr
 		err                        error
 	)
-	loginTemplateStr = config.C.MustGet("login").ValStr()
+	loginTemplateStr = config.C["login"]
 	if loginTemplate, err = template.New("login").Parse(loginTemplateStr); err != nil {
 		return err
 	}
@@ -86,8 +85,8 @@ func (n *Networker) Connect() error {
 	}
 	buf := &bytes.Buffer{}
 	loginTemplate.Execute(buf, m2obj.New(m2obj.Group{
-		"Username": config.C.MustGet("username").ValStr(),
-		"Password": config.C.MustGet("password").ValStr(),
+		"Username": config.C["username"],
+		"Password": config.C["password"],
 		"IP":       ip.String(),
 		"MAC":      mac.String(),
 	}).Staticize())
@@ -107,10 +106,8 @@ func (n *Networker) Connect() error {
 					res := map[string]interface{}{}
 					if err = json.Unmarshal(resJson, &res); err == nil {
 						if res["result"] == 1 {
-							fmt.Println("Logged in")
 							return nil
 						} else {
-							fmt.Println("Cannot login:", string(resJson))
 							return errors.New(string(resJson))
 						}
 					} else {
