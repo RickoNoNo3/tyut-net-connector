@@ -36,8 +36,8 @@ rm -Recurse -Force ./build
 mkdir ./build
 
 Build -GOARCH amd64 -GOOS windows -Name win64
-Build -GOARCH amd64 -GOOS darwin -Name osx-intel64
-Build -GOARCH amd64 -GOOS linux -Name linux-amd64
-Build -GOARCH arm64 -GOOS linux -Name linux-arm64
+# Build -GOARCH amd64 -GOOS darwin -Name osx-intel64
+# Build -GOARCH amd64 -GOOS linux -Name linux-amd64
+# Build -GOARCH arm64 -GOOS linux -Name linux-arm64
 
 echo 'BUILD DONE'
