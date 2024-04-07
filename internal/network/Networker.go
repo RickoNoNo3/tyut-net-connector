@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+
+	// "fmt"
 	"io"
 	"net"
 	"net/http"
@@ -11,7 +13,6 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/rickonono3/m2obj"
 	"github.com/rickonono3/tyut-net-connector/internal/config"
 )
 
@@ -49,21 +50,31 @@ func (n *Networker) getCampusNetwork() (ip net.IP, mac net.HardwareAddr, err err
 	return
 }
 
-func (n *Networker) check(url string) bool {
+func (n *Networker) check(url string) error {
 	// 发送请求
-	resp, err := http.Get(url)
-	if err != nil {
-		return false
+	client := &http.Client{
+		Transport: &http.Transport{
+			Proxy: nil,
+		},
 	}
+	resp, err := client.Get(url)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
 	// 读取返回结果状态码
-	return resp.StatusCode >= 200 && resp.StatusCode < 300
+	if resp.StatusCode >= 200 && resp.StatusCode < 300 {
+		return nil
+	} else {
+		return errors.New("Error: " + resp.Status)
+	}
 }
 
-func (n *Networker) CheckCampus() bool {
+func (n *Networker) CheckCampus() error {
 	return n.check(config.C["health_campus"])
 }
 
-func (n *Networker) CheckInternet() bool {
+func (n *Networker) CheckInternet() error {
 	return n.check(config.C["health_internet"])
 }
 
@@ -84,19 +95,29 @@ func (n *Networker) Connect() error {
 		return err
 	}
 	buf := &bytes.Buffer{}
-	loginTemplate.Execute(buf, m2obj.New(m2obj.Group{
+	loginTemplate.Execute(buf, map[string]interface{}{
 		"Username": config.C["username"],
 		"Password": config.C["password"],
 		"IP":       ip.String(),
 		"MAC":      mac.String(),
-	}).Staticize())
+	})
 	loginUrl = buf.String()
+
 	// 发送login请求
+	client := &http.Client{
+		Transport: &http.Transport{
+			Proxy: nil,
+		},
+	}
 	if req, err := http.NewRequest("GET", loginUrl, nil); err != nil {
 		return err
-	} else if resp, err := http.DefaultClient.Do(req); err != nil {
+	} else if resp, err := client.Do(req); err != nil {
+		if resp != nil {
+			resp.Body.Close()
+		}
 		return err
 	} else {
+		defer resp.Body.Close()
 		// 处理响应并Print结果
 		if resp.StatusCode >= 200 && resp.StatusCode < 300 {
 			if body, err := io.ReadAll(resp.Body); err == nil {
@@ -105,7 +126,7 @@ func (n *Networker) Connect() error {
 					resJson := resMatch[1]
 					res := map[string]interface{}{}
 					if err = json.Unmarshal(resJson, &res); err == nil {
-						if res["result"] == 1 {
+						if res["result"] == float64(1) {
 							return nil
 						} else {
 							return errors.New(string(resJson))

@@ -6,9 +6,13 @@ import (
 	"os"
 	"time"
 
+	"net/http"
+
 	"github.com/rickonono3/tyut-net-connector/internal/config"
 	"github.com/rickonono3/tyut-net-connector/internal/network"
 	"github.com/rickonono3/tyut-net-connector/internal/silentstart"
+
+	_ "net/http/pprof"
 )
 
 var username = flag.String("u", "", "string")
@@ -31,7 +35,7 @@ func initConfig() {
 	}
 	if *mode != "" {
 		if *mode == "direct" || *mode == "motionpro" {
-			config.C["mode"] =*mode
+			config.C["mode"] = *mode
 		} else {
 			panic("Invalid mode! Only supports direct/motionpro")
 		}
@@ -71,33 +75,36 @@ func main() {
 	var n network.INetworker
 	n = &network.Networker{}
 	fmt.Println("[CHECK] Starting check")
-	if n.CheckCampus() && n.CheckInternet() {
+	if n.CheckCampus() == nil && n.CheckInternet() == nil {
 		fmt.Println("[INFO] Already logged in")
 	}
+	go func() {
+		http.ListenAndServe("0.0.0.0:13880", nil)
+	}()
 	for {
 		// 如果能同时连接到校园网和公网，按10s间隔重新检测
 		// 如果能连接到校园网，但连接不到公网，登录一次，若成功，按3600s间隔重新检测，若失败，按120s间隔重新检测并登录
 		// 如果不能连接到校园网，按10s间隔重新检测
 		var sleepTime int64
-		fmt.Println("[CHECK] Check campus network")
-		if n.CheckCampus() {
-			fmt.Println("[CHECK] Check internet network")
-			if n.CheckInternet() {
+		// fmt.Println("[CHECK] Check campus network")
+		if campusErr := n.CheckCampus(); campusErr == nil {
+			// fmt.Println("[CHECK] Check internet network")
+			if internetErr := n.CheckInternet(); internetErr == nil {
 				fmt.Println("[WAIT] 10s: Fully connected")
 				sleepTime = 10
 			} else {
 				fmt.Println("[LOGIN] As:", config.C["username"])
-				if err := n.Connect(); err == nil {
-					fmt.Println("[WAIT] 10s: Logged In")
+				if connectErr := n.Connect(); connectErr == nil {
+					fmt.Println("[WAIT] 3600s: Logged In")
 					sleepTime = 3600
 				} else {
-					fmt.Println("[INFO] Cannot login:", err)
+					fmt.Println("[INFO] Cannot login:", connectErr)
 					fmt.Println("[WAIT] 120s: Cannot login")
 					sleepTime = 120
 				}
 			}
 		} else {
-			fmt.Println("[WAIT] 10s: No campus network")
+			fmt.Println("[WAIT] 10s: No campus network - ", campusErr)
 			sleepTime = 10
 		}
 		time.Sleep(time.Duration(sleepTime * int64(time.Second)))
