@@ -3,9 +3,9 @@
 
 ## 食用方法
 ### 获取
-Windows: 在[Release页](https://github.com/RickoNoNo3/tyut-net-connector/releases)下载最新发行版本。
+在[Release页](https://github.com/RickoNoNo3/tyut-net-connector/releases)下载最新发行版本。
 
-Linux/Mac: 在 Go 1.17 下从源代码编译，执行根目录下的 `build-unix.sh`，将在 `build` 文件夹中生成编译完成的可执行程序及配套启动脚本。
+*手工编译：Go 1.17 下可从源代码编译，执行根目录下的 `build-unix.sh` / `build.ps1`，将在 `build` 文件夹中生成编译完成的可执行程序及配套启动脚本*
 
 ### 连接
 本程序为命令行程序，**已经为不同系统配备了启动脚本，可以编辑脚本文件，配置好个人连接账号和密码后，直接运行脚本**。
