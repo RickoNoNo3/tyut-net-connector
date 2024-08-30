@@ -26,7 +26,23 @@ Windows下，需要静默启动（不显示命令行窗口）可以添加参数`
 本程序设计为守护程序，轮询检查并自动维护网络状态，因此不要求系统开机自动联网，可以在后台挂着，随连随用，也可以在系统从睡眠、休眠等状态还原后自动恢复连接。
 
 根据具体操作系统的不同，自启动的部署方式有所区别，这里给出一些建议：
-- Linux系统：Debian/Ubuntu建议以systemctl服务形式部署，放置在network服务之后；其他linux系统类似。也可放于rc中
+- Linux系统：建议以systemctl服务形式部署，放置在network服务之后（作为替代方案，也可放于rc中），service配置范例如下：
+```ini
+[Unit]
+Description=TYUT Net Connector
+After=network.target
+
+[Service]
+Type=simple
+User=root
+Group=root
+WorkingDirectory=/root/tyut-net-connector
+ExecStart=/usr/bin/bash tyut-net-connector-startup.sh
+Restart=on-success
+
+[Install]
+WantedBy=multi-user.target
+```
 - Windows系统：建议将本程序的`tyut-net-connector-startup.cmd`脚本的**快捷方式**放置于`开始菜单-启动`目录下，注意提前编辑好脚本文件中的账号密码，并将silent置为1
 - MacOS系统：建议在`设置-用户与群组-登录项`中配置启动脚本`tyut-net-connector-startup.sh`为登录项
 
