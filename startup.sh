@@ -9,4 +9,4 @@ fi
 
 chmod +x ./tyut-net-connector
 
-./tyut-net-connector -u %username% -p %password%
+./tyut-net-connector -u $username -p $password
