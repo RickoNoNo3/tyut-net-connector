@@ -41,3 +41,7 @@ Build -GOARCH amd64 -GOOS darwin -Name osx_amd64
 Build -GOARCH arm64 -GOOS darwin -Name osx_arm64
 
 echo 'BUILD DONE'
+
+go env -w CGO_ENABLED=1
+go env -w GOARCH=amd64
+go env -w GOOS=windows

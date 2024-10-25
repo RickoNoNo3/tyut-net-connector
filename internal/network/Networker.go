@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"time"
 
 	// "fmt"
 	"io"
@@ -56,6 +58,7 @@ func (n *Networker) check(url string) error {
 		Transport: &http.Transport{
 			Proxy: nil,
 		},
+		Timeout: 8 * time.Second,
 	}
 	resp, err := client.Get(url)
 	if err != nil {
@@ -96,10 +99,14 @@ func (n *Networker) Connect() error {
 	}
 	buf := &bytes.Buffer{}
 	loginTemplate.Execute(buf, map[string]interface{}{
-		"Username": config.C["username"],
-		"Password": config.C["password"],
-		"IP":       ip.String(),
-		"MAC":      mac.String(),
+		"Username":          config.C["username"],
+		"Password":          config.C["password"],
+		"IP":                ip.String(),
+		"MAC":               mac.String(),
+		"UsernameEncrypted": entrypt(config.C["username"]),
+		"PasswordEncrypted": entrypt(config.C["password"]),
+		"IPEncrypted":       entrypt(ip.String()),
+		"MACEncrypted":      entrypt(mac.String()),
 	})
 	loginUrl = buf.String()
 
@@ -113,6 +120,8 @@ func (n *Networker) Connect() error {
 		return err
 	} else if resp, err := client.Do(req); err != nil {
 		if resp != nil {
+			body, _ := io.ReadAll(resp.Body)
+			fmt.Println(string(body))
 			resp.Body.Close()
 		}
 		return err
@@ -122,7 +131,7 @@ func (n *Networker) Connect() error {
 		if resp.StatusCode >= 200 && resp.StatusCode < 300 {
 			if body, err := io.ReadAll(resp.Body); err == nil {
 				resMatch := loginResponseRegexp.FindSubmatch(body)
-				if resMatch != nil && len(resMatch) > 1 && len(resMatch[1]) >= 2 {
+				if len(resMatch) > 1 && len(resMatch[1]) >= 2 {
 					resJson := resMatch[1]
 					res := map[string]interface{}{}
 					if err = json.Unmarshal(resJson, &res); err == nil {
@@ -135,12 +144,16 @@ func (n *Networker) Connect() error {
 						return err
 					}
 				} else {
-					return errors.New("Invalid Response From Server")
+					return errors.New("invalid response from server")
 				}
 			} else {
+				body, _ := io.ReadAll(resp.Body)
+				fmt.Println(string(body))
 				return err
 			}
 		} else {
+			body, _ := io.ReadAll(resp.Body)
+			fmt.Println(string(body))
 			return errors.New("Server Status Err" + resp.Status)
 		}
 	}
