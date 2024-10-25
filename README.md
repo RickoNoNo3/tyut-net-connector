@@ -1,6 +1,10 @@
 # [TYUT-Net-Connector](https://github.com/rickonono3/tyut-net-connector)
 本程序用于：以校内网线连接到校园网但需要网页登录，**由本程序自动完成其中的网页登录步骤**
 
+> 已适配2024/10学校更新的新登录接口。
+> 
+> 相比老接口使用明文传输，新接口增加了异或加密，因此基于明文的请求拼接方式不再可用。本程序最新版本已实现自动适配，无需考虑加密细节可直接使用。
+
 ## 食用方法
 ### 获取
 在[Release页](https://github.com/RickoNoNo3/tyut-net-connector/releases)下载最新发行版本。
