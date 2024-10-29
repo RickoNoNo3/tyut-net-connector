@@ -25,6 +25,8 @@ function Build {
     cp ./startup.sh ./build/$Name/tyut-net-connector-startup.sh
   }
   cp ./README.md ./build/$Name/
+  cp ./encrypt.sh ./build/$Name/
+  cp ./easy-connect.sh ./build/$Name/
   cd ./build
   Compress-Archive -Path ./$Name/* -DestinationPath ./tyut-net-connector-$Name-$version.zip
   rm -Recurse -Force ./$Name
