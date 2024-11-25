@@ -5,6 +5,7 @@ password=你的密码
 ls ./tyut-net-connector
 if [[ $? -ne 0 ]]; then
   echo No executable found.
+  exit 1
 fi
 
 chmod +x ./tyut-net-connector

@@ -21,12 +21,12 @@ import (
 type Networker struct {
 }
 
-var loginResponseRegexp = regexp.MustCompile("^[A-Za-z0-9]+\\((\\{.*\\})\\)[^{}]*$")
+var loginResponseRegexp = regexp.MustCompile(`^[A-Za-z0-9]+\((\{.*\})\)[^{}]*$`)
 
-func (n *Networker) getCampusNetwork() (ip net.IP, mac net.HardwareAddr, err error) {
+func (n *Networker) getCampusNetwork() (ip net.IP, mac net.HardwareAddr, I *net.Interface, err error) {
 	var interfaces []net.Interface
 	if interfaces, err = net.Interfaces(); err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 	for _, i := range interfaces {
 		var addrs []net.Addr
@@ -42,12 +42,13 @@ func (n *Networker) getCampusNetwork() (ip net.IP, mac net.HardwareAddr, err err
 			if strings.Count(ad, ".") == 3 {
 				if strings.HasPrefix(ad, "101.") {
 					ip, mac = net.ParseIP(ad), i.HardwareAddr
+					I = &i
 				}
 			}
 		}
 	}
-	if ip != nil && mac != nil {
-		err = nil
+	if ip == nil || mac == nil || I == nil {
+		err = errors.New("campus network not found")
 	}
 	return
 }
@@ -81,20 +82,15 @@ func (n *Networker) CheckInternet() error {
 	return n.check(config.C["health_internet"])
 }
 
-func (n *Networker) Connect() error {
+func (n *Networker) ConnectByUrl(ip net.IP, mac net.HardwareAddr) error {
 	// 处理loginUrl template
 	var (
 		loginTemplateStr, loginUrl string
 		loginTemplate              *template.Template
-		ip                         net.IP
-		mac                        net.HardwareAddr
 		err                        error
 	)
 	loginTemplateStr = config.C["login"]
 	if loginTemplate, err = template.New("login").Parse(loginTemplateStr); err != nil {
-		return err
-	}
-	if ip, mac, err = n.getCampusNetwork(); err != nil {
 		return err
 	}
 	buf := &bytes.Buffer{}
@@ -157,4 +153,23 @@ func (n *Networker) Connect() error {
 			return errors.New("Server Status Err" + resp.Status)
 		}
 	}
+}
+
+func (n *Networker) Connect() error {
+	var (
+		ip  net.IP
+		mac net.HardwareAddr
+		i   *net.Interface
+		err error
+	)
+	if ip, mac, i, err = n.getCampusNetwork(); err != nil {
+		return err
+	}
+	return n.ConnectByPPP(i)
+	if err = n.ConnectByUrl(ip, mac); err != nil {
+		fmt.Println("[Connect]ConnectByUrl err:", err)
+		fmt.Println("[Connect]Trying to ConnectByPPP...")
+		return n.ConnectByPPP(i)
+	}
+	return nil
 }

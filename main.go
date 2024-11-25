@@ -58,10 +58,9 @@ func main() {
 	defer func() {
 		if pan := recover(); pan != nil {
 			fmt.Println("+--------------")
-			fmt.Println("ERR:", pan)
+			fmt.Println("PANIC:", pan)
 			fmt.Println("+--------------")
-			showHelp()
-			os.Exit(-1)
+			panic(pan)
 		}
 	}()
 	initConfig()
@@ -72,8 +71,7 @@ func main() {
 	if *silent {
 		silentStart()
 	}
-	var n network.INetworker
-	n = &network.Networker{}
+	var n network.INetworker = &network.Networker{}
 	fmt.Println("[CHECK] Starting check")
 	if n.CheckCampus() == nil && n.CheckInternet() == nil {
 		fmt.Println("[INFO] Already logged in")
@@ -81,6 +79,7 @@ func main() {
 	go func() {
 		http.ListenAndServe("0.0.0.0:13880", nil)
 	}()
+	var waitCount int32
 	for {
 		// 如果能同时连接到校园网和公网，按10s间隔重新检测
 		// 如果能连接到校园网，但连接不到公网，登录一次，若成功，按3600s间隔重新检测，若失败，按120s间隔重新检测并登录
@@ -90,21 +89,39 @@ func main() {
 		if campusErr := n.CheckCampus(); campusErr == nil {
 			// fmt.Println("[CHECK] Check internet network")
 			if internetErr := n.CheckInternet(); internetErr == nil {
-				fmt.Println("[WAIT] 10s: Fully connected")
+				if waitCount == 0 {
+					fmt.Println("[WAIT] Fully connected, waiting...")
+				}
+				waitCount = (waitCount + 1) % 10
 				sleepTime = 10
 			} else {
 				fmt.Println("[LOGIN] As:", config.C["username"])
 				if connectErr := n.Connect(); connectErr == nil {
-					fmt.Println("[WAIT] 3600s: Logged In")
-					sleepTime = 3600
+					waitCount = 0
+					fmt.Println("[LOGIN] Logged In")
+					fmt.Println("[WAIT] 600s")
+					sleepTime = 600
 				} else {
-					fmt.Println("[INFO] Cannot login:", connectErr)
-					fmt.Println("[WAIT] 120s: Cannot login")
+					waitCount = 0
+					fmt.Println("[LOGIN] Cannot login:", connectErr)
+					fmt.Println("[WAIT] 120s")
 					sleepTime = 120
 				}
 			}
 		} else {
-			fmt.Println("[WAIT] 10s: No campus network - ", campusErr)
+			if waitCount == 0 {
+				fmt.Println("[LOGIN] No campus network (" + campusErr.Error() + "), just try to connect...")
+				if connectErr := n.Connect(); connectErr == nil {
+					waitCount = 0
+					fmt.Println("[LOGIN] Logged In")
+					fmt.Println("[WAIT] 600s")
+					sleepTime = 600
+				} else {
+					waitCount = (waitCount + 1) % 10
+				}
+			} else {
+				waitCount = (waitCount + 1) % 10
+			}
 			sleepTime = 10
 		}
 		time.Sleep(time.Duration(sleepTime * int64(time.Second)))
