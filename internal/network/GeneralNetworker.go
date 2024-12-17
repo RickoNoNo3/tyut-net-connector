@@ -165,7 +165,6 @@ func (n *Networker) Connect() error {
 	if ip, mac, i, err = n.getCampusNetwork(); err != nil {
 		return err
 	}
-	return n.ConnectByPPP(i)
 	if err = n.ConnectByUrl(ip, mac); err != nil {
 		fmt.Println("[Connect]ConnectByUrl err:", err)
 		fmt.Println("[Connect]Trying to ConnectByPPP...")
