@@ -2,6 +2,7 @@ package network
 
 import (
 	"bytes"
+	"crypto/tls"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -58,6 +59,7 @@ func (n *Networker) check(url string) error {
 	client := &http.Client{
 		Transport: &http.Transport{
 			Proxy: nil,
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 		},
 		Timeout: 8 * time.Second,
 	}
@@ -67,7 +69,7 @@ func (n *Networker) check(url string) error {
 	}
 	defer resp.Body.Close()
 	// 读取返回结果状态码
-	if resp.StatusCode >= 200 && resp.StatusCode < 300 {
+	if resp.StatusCode >= 200 && resp.StatusCode < 400 {
 		return nil
 	} else {
 		return errors.New("Error: " + resp.Status)
