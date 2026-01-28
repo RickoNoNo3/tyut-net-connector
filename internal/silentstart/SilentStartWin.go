@@ -5,8 +5,11 @@ package silentstart
 
 import (
 	"fmt"
+	"os"
+	"os/exec"
 	"syscall"
 	"github.com/gonutz/w32/v2"
+	"github.com/rickonono3/tyut-net-connector/internal/config"
 )
 
 var (
@@ -14,38 +17,38 @@ var (
 	procFreeConsole = kernel32.NewProc("FreeConsole")
 )
 
-func freeConsole() error {
-	ret, _, err := procFreeConsole.Call()
-	if ret == 0 {
-		return err
-	}
-	return nil
+func checkPowerShell() bool {
+	cmd := exec.Command("powershell", "-command", "exit 0")
+	err := cmd.Run()
+	return err == nil
 }
 
 func SilentStart() {
-	console := w32.GetConsoleWindow()
-	fmt.Printf("[DEBUG] Console handle: %d\n", console)
-	if console != 0 {
-		_, consoleProcID := w32.GetWindowThreadProcessId(console)
-		currentProcID := w32.GetCurrentProcessId()
-		fmt.Printf("[DEBUG] Console ProcID: %d, Current ProcID: %d\n", consoleProcID, currentProcID)
-		if currentProcID == consoleProcID {
-			result := w32.ShowWindowAsync(console, w32.SW_HIDE)
-			fmt.Printf("[DEBUG] ShowWindowAsync result: %v\n", result)
-		} else {
-			fmt.Printf("[DEBUG] Console not owned by current process, trying FreeConsole\n")
-			if err := freeConsole(); err != nil {
-				fmt.Printf("[DEBUG] FreeConsole failed: %v\n", err)
-			} else {
-				fmt.Printf("[DEBUG] FreeConsole succeeded\n")
-			}
+	if checkPowerShell() {
+		// 使用 PowerShell 启动隐藏的新进程
+		exe, err := os.Executable()
+		if err != nil {
+			exe = os.Args[0] // 回退到 os.Args[0]
 		}
+		cmd := exec.Command("powershell", "-windowstyle", "hidden", "-command",
+			fmt.Sprintf("Start-Process '%s' -ArgumentList '-u %s -p %s -silent -alreadysilent' -WindowStyle Hidden", exe, config.C["username"], config.C["password"]),
+		)
+		cmd.Start()
+		os.Exit(0)
 	} else {
-		fmt.Printf("[DEBUG] No console window found, trying FreeConsole\n")
-		if err := freeConsole(); err != nil {
-			fmt.Printf("[DEBUG] FreeConsole failed: %v\n", err)
+		// 回退到原来的隐藏逻辑
+		console := w32.GetConsoleWindow()
+		if console != 0 {
+			_, consoleProcID := w32.GetWindowThreadProcessId(console)
+			currentProcID := w32.GetCurrentProcessId()
+			fmt.Printf("[DEBUG] Console ProcID: %d, Current ProcID: %d\n", consoleProcID, currentProcID)
+			if currentProcID == consoleProcID {
+				_ = w32.ShowWindowAsync(console, w32.SW_HIDE)
+			} else {
+	            procFreeConsole.Call()
+			}
 		} else {
-			fmt.Printf("[DEBUG] FreeConsole succeeded\n")
+			procFreeConsole.Call()
 		}
 	}
 }

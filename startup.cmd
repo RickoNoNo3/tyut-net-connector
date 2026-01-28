@@ -5,10 +5,11 @@ SET password=你的密码
 SET silent=0
 
 if %silent% EQU 1 (
-  start /b cmd /c tyut-net-connector.exe -u %username% -p %password% -silent >nul 2>&1
+  start tyut-net-connector.exe -u %username% -p %password% -silent
   goto END
 )
 tyut-net-connector.exe -u %username% -p %password%
 pause >nul
 
 :END
+exit

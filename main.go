@@ -19,6 +19,7 @@ var username = flag.String("u", "", "string")
 var password = flag.String("p", "", "string")
 var mode = flag.String("mode", "", "string")
 var silent = flag.Bool("silent", false, "silent")
+var alreadysilent = flag.Bool("alreadysilent", false, "alreadysilent")
 var help = flag.Bool("help", false, "help")
 
 func initConfig() {
@@ -50,10 +51,6 @@ func showHelp() {
 ... see README.md`)
 }
 
-func silentStart() {
-	silentstart.SilentStart()
-}
-
 func main() {
 	defer func() {
 		if pan := recover(); pan != nil {
@@ -68,8 +65,8 @@ func main() {
 		showHelp()
 		os.Exit(0)
 	}
-	if *silent {
-		silentStart()
+	if *silent && !*alreadysilent {
+		silentstart.SilentStart()
 	}
 	var n network.INetworker = &network.Networker{}
 	fmt.Println("[CHECK] Starting check")
